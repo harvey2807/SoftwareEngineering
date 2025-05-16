@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer, QTime, QDate, QSize
 
 from StudentInformationManagement import StudentInformationManagement
-
+from SystemStatistics import SystemStatistics
 # 7.0.1. Đang ở trang Home này
 class Home(QWidget):
     def __init__(self,stacked_widget):
@@ -98,9 +98,15 @@ class Home(QWidget):
         # Khởi tạo một đối tượng StudentInformationManagement.
         self.StudentInformationManagement = StudentInformationManagement(self)
 
+        # Khởi tạo một đối tượng SystemStatistics.
+        self.SystemStatistics = SystemStatistics(self)
+
         # QTabWidget thêm StudentInformationManagement làm tab mới với tên "Quản lí sinh viên" thông qua phương thức addTab.
         self.tab.addTab(self.StudentInformationManagement, 'Quản lí sinh viên')
-      
+
+        self.tab.addTab(self.SystemStatistics, 'Thống kê')
+
+    # 6.1.0 Chọn tab "Thống kê" từ  QTabWidget
         # QTabWidget được thêm vào main_layout thông qua phương thức addWidget.
         self.main_layout.addWidget(self.tab)
 
