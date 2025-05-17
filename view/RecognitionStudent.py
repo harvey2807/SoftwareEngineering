@@ -160,7 +160,7 @@ class RecognitionStudentView(QWidget):
 
         # Buttons
         camera_buttons_layout = QHBoxLayout()
-        #9.1.7. Khi giáo viên nhấn vào nút “Tải ảnh”, phương thức load_image() được kích hoạt.
+        #9.1.4. Khi giáo viên nhấn vào nút “Tải ảnh”, phương thức load_image() được kích hoạt.
         self.load_image_btn = QPushButton("Tải Ảnh")
         self.load_image_btn.clicked.connect(self.load_image)
         #9.1.25. Khi nhấp vào “Nhận diện lại”, phương thức remove_inf() được gọi
@@ -266,7 +266,7 @@ class RecognitionStudentView(QWidget):
                 db="facerecognitionsystem"
             )
             cursor = db.cursor()
-            #9.1.4. Truy vấn nếu thời gian hiện tại nằm giữa thời gian bắt đầu và kết thúc của một buổi hoc.
+            #Truy vấn nếu thời gian hiện tại nằm giữa thời gian bắt đầu và kết thúc của một buổi hoc.
             query = """
                 select c.nameC, s.sessionName
                 from sessions s join classes c 
@@ -279,12 +279,12 @@ class RecognitionStudentView(QWidget):
             if not results:
                 print("Không có lớp học nào trong hệ thống.")
                 session_names = ["", ""]
-                #9.1.6. Nếu không tìm thấy buổi học, giá trị trống được hiển thị và chức năng nhận diện bị vô hiệu hóa.
+                #Nếu không tìm thấy buổi học, giá trị trống được hiển thị và chức năng nhận diện bị vô hiệu hóa.
                 self.start_recognition = False
             else:
                 for data in results[0]:
                     session_names.append(data)
-                #9.1.5.  Nếu tìm thấy buổi học đang hoạt động, tên lớp và tên buổi học được hiển thị trên giao diện, và chức năng nhận diện được kích hoạt.    
+                # Nếu tìm thấy buổi học đang hoạt động, tên lớp và tên buổi học được hiển thị trên giao diện, và chức năng nhận diện được kích hoạt.    
                 self.start_recognition = True
             self.classname.setText(session_names[0])
             self.sessionname.setText(session_names[1])
@@ -293,7 +293,7 @@ class RecognitionStudentView(QWidget):
         finally:
             cursor.close()
             db.close()
-
+    #9.1.8. face_extractor(img) phát hiện khuôn mặt trong ảnh grayscale sử dụng Haar cascade.
     def face_extractor(self, img):
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         faces = face_cascade.detectMultiScale(img, 1.3, 5)
@@ -305,7 +305,8 @@ class RecognitionStudentView(QWidget):
             return cropped_face
         return None
 
-    #9.1.8. Phương thức mở hộp thoại chọn tệp cho tệp hình ảnh.
+    #Phương thức mở hộp thoại chọn tệp cho tệp hình ảnh.
+    # 9.1.7. Khi giáo viên nhấn vào nút “Tải ảnh”, phương thức load_image() được kích hoạt.
     def load_image(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Chọn ảnh", "", "Image Files (*.png *.jpg *.jpeg *.bmp)")
         if file_path:
@@ -313,14 +314,14 @@ class RecognitionStudentView(QWidget):
             if self.current_image is None:
                 self.image_display.setText("Không thể tải ảnh")
                 return
-            #9.1.10. Nếu tải thành công, phương thức process_image() được gọi để chuyển đổi ảnh đã tải từ không gian màu BGR sang RGB.
+            #Nếu tải thành công, phương thức process_image() được gọi để chuyển đổi ảnh đã tải từ không gian màu BGR sang RGB.
             self.process_image()
-
+    #9.1.5. phương thức process_image() được gọi để chuyển đổi ảnh đã tải từ không gian màu BGR sang RGB
     def process_image(self):
         if self.current_image is None:
             return
         frame = cv2.cvtColor(self.current_image, cv2.COLOR_BGR2RGB)
-        #9.1.11. Một bộ phân loại Haar cascade được sử dụng để phát hiện khuôn mặt trong ảnh.
+        #9.1.6. Một bộ phân loại Haar cascade được sử dụng để phát hiện khuôn mặt trong ảnh.
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         faces = face_cascade.detectMultiScale(frame, 1.3, 5)
         for (x, y, w, h) in faces:
@@ -330,10 +331,10 @@ class RecognitionStudentView(QWidget):
         q_image = QImage(frame.data, width, height, step, QImage.Format.Format_RGB888)
         self.image_display.setPixmap(QPixmap.fromImage(q_image).scaled(700, 360, Qt.AspectRatioMode.KeepAspectRatio))
         gray = cv2.cvtColor(self.current_image, cv2.COLOR_BGR2RGB)
-        #9.1.15. face_extractor(img) phát hiện khuôn mặt trong ảnh grayscale sử dụng Haar cascade.
+        #9.1.8. face_extractor(img) phát hiện khuôn mặt trong ảnh grayscale sử dụng Haar cascade.
         face = self.face_extractor(gray)
 
-        #9.1.14. Nếu nhận diện được kích hoạt và phát hiện khuôn mặt, update_face_recognitioned() được gọi.
+        #9.1.7. Nếu nhận diện được kích hoạt và phát hiện khuôn mặt, update_face_recognitioned() được gọi.
         if self.start_recognition and face is not None:
             self.update_face_recognitioned(face, frame)
     #9.1.18. update_face_recognitioned(face_img, frame1) xử lý khuôn mặt đã trích xuất để nhận diện
