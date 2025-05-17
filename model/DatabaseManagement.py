@@ -171,4 +171,73 @@ class DatabaseManagement:
         result = self.execute_query(query, (student_id,), fetch=True)
         return result if result else []
 
+
+
+
+
+    def get_attendance_data(self):
+        """Lấy dữ liệu học sinh có điểm danh"""
+        query = """
+        SELECT c.nameC, s.SId, s.nameSt, ses.sessionName, ses.sessionDate 
+        FROM classes c
+        JOIN sessions ses ON c.CId = ses.CId
+        JOIN studentsInSessions ss ON ses.sessionId = ss.sessionId
+        JOIN students s ON ss.SId = s.SId
+        WHERE ss.attendance = 'present'
+        ORDER BY c.CId, ss.sessionId, s.nameSt
+        """
+        result = self.execute_query(query, fetch=True)
+        return result if result else []
+
+    def get_no_attendance_data(self):
+        """Lấy dữ liệu học sinh không điểm danh"""
+        query = """
+        SELECT c.nameC, s.SId, s.nameSt, ses.sessionName, ses.sessionDate 
+        FROM classes c
+        JOIN sessions ses ON c.CId = ses.CId
+        JOIN studentsInSessions ss ON ses.sessionId = ss.sessionId
+        JOIN students s ON ss.SId = s.SId
+        WHERE ss.attendance = 'absent'
+        ORDER BY c.CId, ses.sessionId, s.nameSt
+        """
+        result = self.execute_query(query, fetch=True)
+        return result if result else []
+
+    def get_class_statistics(self):
+        """Lấy danh sách lớp và thống kê điểm danh"""
+        # Lấy danh sách tất cả các lớp
+        query_classes = """
+        SELECT CId, nameC
+        FROM classes
+        ORDER BY CId
+        """
+        classes_result = self.execute_query(query_classes, fetch=True)
+        class_names = {row[0]: row[1] for row in classes_result} if classes_result else {}
+
+        # Lấy số học sinh có điểm danh
+        query_present = """
+        SELECT c.nameC, COUNT(ss.SId) AS present_students_count
+        FROM classes c
+        JOIN sessions s ON c.CId = s.CId
+        JOIN studentsinsessions ss ON s.sessionId = ss.sessionId
+        WHERE ss.attendance = 'present'
+        GROUP BY c.CId
+        """
+        present_result = self.execute_query(query_present, fetch=True)
+        hoc_sinh_co_diem_danh = {row[0]: row[1] for row in present_result} if present_result else {}
+
+        # Lấy số học sinh vắng
+        query_absent = """
+        SELECT c.nameC, COUNT(ss.SId) AS absent_students_count
+        FROM classes c
+        JOIN sessions s ON c.CId = s.CId
+        JOIN studentsInSessions ss ON s.sessionId = ss.sessionId
+        WHERE ss.attendance = 'absent'
+        GROUP BY c.CId
+        """
+        absent_result = self.execute_query(query_absent, fetch=True)
+        hoc_sinh_vang = {row[0]: row[1] for row in absent_result} if absent_result else {}
+
+        return class_names, hoc_sinh_co_diem_danh, hoc_sinh_vang
+
    
