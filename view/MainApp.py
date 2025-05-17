@@ -19,12 +19,7 @@ class MainApp(QWidget):
         # Thêm các trang
         # self.login_page = LoginView(self.stacked_widget)
         # self.signup_page = SignUpView(self.stacked_widget)
-        self.recognition_student_page = RecognitionStudentView(self.stacked_widget)
-        self.student_information_page = SystemStatistics(self.stacked_widget)
 
-
-        self.stacked_widget.addWidget(self.recognition_student_page)    
-        self.stacked_widget.addWidget(self.student_information_page)    
         # self.stacked_widget.addWidget(self.login_page)
         # self.stacked_widget.addWidget(self.signup_page)
 

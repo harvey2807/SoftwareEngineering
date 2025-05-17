@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer, QTime, QDate, QSize
 
+<<<<<<< HEAD
 
 import Global
 
@@ -20,6 +21,14 @@ class HomeView(QWidget):
     def __init__(self,stacked_widget):
         super().__init__()
         self.stacked_widget = QStackedWidget()
+=======
+from StudentInformationManagement import StudentInformationManagement
+from SystemStatistics import SystemStatistics
+# 7.0.1. Đang ở trang Home này
+class Home(QWidget):
+    def __init__(self,stacked_widget):
+        super().__init__()
+>>>>>>> 176e3f4605dafdba25530fdaddb7beb3d65302d4
         self.stacked_widget = stacked_widget
         self.setWindowTitle('Face Recognition System')
         self.setGeometry(0, 0, 1200, 700)
@@ -27,12 +36,19 @@ class HomeView(QWidget):
         self.init_ui()
 
     def init_ui(self):
+<<<<<<< HEAD
         # Giao diện chính
+=======
+        # Một QVBoxLayout (self.main_layout) được tạo và gán cho main_widget.
+>>>>>>> 176e3f4605dafdba25530fdaddb7beb3d65302d4
         self.central_widget = QWidget(self)
         self.central_widget.setFixedSize(1200, 700)
         self.central_widget.setStyleSheet("background-color: lightblue;")
 
+<<<<<<< HEAD
         # Tạo panel chính
+=======
+>>>>>>> 176e3f4605dafdba25530fdaddb7beb3d65302d4
         self.panel = QFrame(self.central_widget)
         self.panel.setGeometry(15, 15, 1150, 650)
         self.panel.setStyleSheet("""
@@ -40,7 +56,10 @@ class HomeView(QWidget):
                            border-radius: 10px;
                        """)
 
+<<<<<<< HEAD
         # Tạo header
+=======
+>>>>>>> 176e3f4605dafdba25530fdaddb7beb3d65302d4
         self.header_panel = QFrame(self.panel)
         self.header_panel.setGeometry(0, 0, 1150, 50)
         self.header_panel.setStyleSheet("""
@@ -50,7 +69,10 @@ class HomeView(QWidget):
                             border-bottom: 1px solid black;
                         """)
 
+<<<<<<< HEAD
         # Thêm đồng hồ và ngày tháng
+=======
+>>>>>>> 176e3f4605dafdba25530fdaddb7beb3d65302d4
         self.clock_icon = QLabel()
         self.clock_icon.setPixmap(QPixmap('../Image/clock-icon.png').scaled(35, 30))
         self.clock_icon.setStyleSheet("border: none;")
@@ -69,7 +91,10 @@ class HomeView(QWidget):
         self.date_label.setStyleSheet("font-size: 12px; font-weight: bold; border: none;")
         self.time_date_layout.addWidget(self.date_label)
 
+<<<<<<< HEAD
         # Tạo title
+=======
+>>>>>>> 176e3f4605dafdba25530fdaddb7beb3d65302d4
         self.title_label = QLabel("Hệ thống nhận diện khuôn mặt")
         self.title_label.setStyleSheet("font-size: 20px; font-weight: bold;")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -82,6 +107,7 @@ class HomeView(QWidget):
         self.title_layout.setContentsMargins(0, 0, 0, 0)
         self.title_layout.addWidget(self.title_label)
 
+<<<<<<< HEAD
         # Tạo nút logout
         self.logout_button = QPushButton(self.header_panel)
         self.logout_button.setIcon(QIcon("../Image/logout_icon.png"))  # Đường dẫn đến icon
@@ -112,6 +138,24 @@ class HomeView(QWidget):
         self.main_widget.setLayout(self.main_layout)
 
         # Tạo QTabWidget
+=======
+        self.header_layout = QHBoxLayout(self.header_panel)
+        self.header_layout.setContentsMargins(10, 5, 10, 5)
+        self.header_layout.setSpacing(10)
+        self.header_layout.addWidget(self.clock_icon)
+        self.header_layout.addWidget(self.time_date_panel)
+        self.header_layout.addStretch()
+        self.header_layout.addWidget(self.title_panel)
+        self.header_layout.addStretch()
+
+        #Tạo main_widget và gán layout
+        self.main_widget = QWidget(self.panel)
+        self.main_widget.setStyleSheet("background-color: white;")
+        self.main_widget.setGeometry(0, 50, 1150, 600)
+        self.main_layout = QVBoxLayout(self.main_widget)
+
+        # Tạo một QTabWidget (self.tab) và thiết lập style cho nó với CSS để hiển thị tab đang chọn với nền trắng và đường viền màu xanh (#0078D7).
+>>>>>>> 176e3f4605dafdba25530fdaddb7beb3d65302d4
         self.tab = QTabWidget(self.main_widget)
         self.tab.setStyleSheet("""
             QTabBar::tab:selected { 
@@ -121,6 +165,7 @@ class HomeView(QWidget):
             }
         """)
 
+<<<<<<< HEAD
         # Thêm các trang vào tab
         self.Profile_page = ProfileView(self)
         self.RecognitionStudent_page = RecognitionStudentView(self)
@@ -155,3 +200,38 @@ class HomeView(QWidget):
     def update_time(self):
         self.time_label.setText(QTime.currentTime().toString("hh:mm:ss"))
         self.date_label.setText(QDate.currentDate().toString("dd/MM/yyyy"))
+=======
+        # Khởi tạo một đối tượng StudentInformationManagement.
+        self.StudentInformationManagement = StudentInformationManagement(self)
+
+        # Khởi tạo một đối tượng SystemStatistics.
+        self.SystemStatistics = SystemStatistics(self)
+
+        # QTabWidget thêm StudentInformationManagement làm tab mới với tên "Quản lí sinh viên" thông qua phương thức addTab.
+        self.tab.addTab(self.StudentInformationManagement, 'Quản lí sinh viên')
+
+        self.tab.addTab(self.SystemStatistics, 'Thống kê')
+
+    # 6.1.0 Chọn tab "Thống kê" từ  QTabWidget
+        # QTabWidget được thêm vào main_layout thông qua phương thức addWidget.
+        self.main_layout.addWidget(self.tab)
+
+        timer = QTimer(self)
+        timer.timeout.connect(self.update_time)
+        timer.start(1000)
+        self.update_time()
+
+    def update_time(self):
+        self.time_label.setText(QTime.currentTime().toString("hh:mm:ss"))
+        self.date_label.setText(QDate.currentDate().toString("dd/MM/yyyy"))
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    from PyQt6.QtWidgets import QStackedWidget
+    stacked = QStackedWidget()
+    home = Home(stacked)
+    home.show()
+    sys.exit(app.exec())
+
+      
+>>>>>>> 176e3f4605dafdba25530fdaddb7beb3d65302d4
