@@ -228,3 +228,125 @@ class ClassManagementView(QWidget):
         self.search_button.clicked.connect(self.search_session)
         self.view_all_button.clicked.connect(self.view_all_session)
 
+    def reset_fields(self):
+        self.id_input.clear()
+        self.sessionName.clear()
+        self.classname.setCurrentIndex(0)  # Chọn lại giá trị mặc định đầu tiên
+        self.datetime.setDate(QDate.currentDate())  # Đặt lại ngày hiện tại
+        self.end_time.clear()
+        self.startTime.clear()
+
+    # 4.2.5 Use Case: Import lớp học
+    def importFile(self):
+
+        # 6.5.3 Người dùng click nút &quot;Import lớp học&quot;
+
+        # 6.5.4 Hệ thống mở hộp thoại cho phép người dùng chọn file Excel
+        file, _ = QFileDialog.getOpenFileName(self, "Chọn file Excel để import", "", "Excel Files (*.xls *.xlsx)")
+
+        # 6.5.5 Nếu không có file được chọn, dừng quá trình
+        if not file:
+            return
+
+        # 6.5.6 Nếu có file, hệ thống đọc dữ liệu từ file Excel sử dụng pandas
+        try:
+            # Đọc dữ liệu từ file Excel sử dụng pandas
+            df = pd.read_excel(file, engine='openpyxl')  # Đọc tệp .xlsx
+
+            db = mdb.connect(
+                host='localhost',
+                user='root',
+                passwd='',
+                db="facerecognitionsystem")
+            cursor = db.cursor()
+
+            # 6.5.7 Duyệt file
+            for index, row in df.iterrows():
+                try:
+                    # 6.5.8 Lấy dữ liệu từng dòng
+                    classname = row['Lớp']
+                    sessionname = row['Tên buổi']
+                    startDate = pd.to_datetime(row["Ngày bắt đầu"], format="%y/%m/%d", errors='coerce')
+                    endDate = pd.to_datetime(row["Ngày kết thúc"], format="%yy/%m/%d", errors='coerce')
+                    time = row["Thời gian"]
+
+                    # 6.5.9 Kiểm tra dữ liệu trong file (ngày tháng có hợp lệ)
+                    if pd.isna(startDate) or pd.isna(endDate) or startDate > endDate:
+                        # 6.5.10 Nếu dữ liệu không hợp lệ, hiển thị thông báo lỗi và dừng quá trình
+                        QMessageBox.warning(self, "Lỗi",
+                                            f"Ngày bắt đầu hoặc kết thúc không hợp lệ tại dòng {index + 1}")
+                        break
+
+                    # 6.5.11 Kiểm tra lớp học có tồn tại trong cơ sở dữ liệu hay không
+                    check_query = "SELECT COUNT(*) FROM classes WHERE nameC = %s and TId = %s"
+                    cursor.execute(check_query, (classname, Global.GLOBAL_ACCOUNTID))
+                    result = cursor.fetchone()
+
+
+                    if result[0] == 0:
+                        # MAIN FLOW: Lớp học chưa tồn tại → thêm mới
+                        query = "INSERT INTO classes (nameC, TId) VALUES (%s, %s)"
+                        cursor.execute(query, (classname, Global.GLOBAL_ACCOUNTID))
+                        db.commit()
+                        class_id = cursor.lastrowid
+                    else:
+                        print("vao day")
+                        #  MAIN FLOW: Lớp học đã tồn tại → lấy class_id
+                        # Nếu lớp học đã tồn tại, lấy ID của lớp học
+                        query_get_id = "SELECT CId FROM classes WHERE nameC = %s  and TId = %s"
+                        cursor.execute(query_get_id, (classname, Global.GLOBAL_ACCOUNTID))
+                        class_id = cursor.fetchone()[0]
+
+                    # 6.5.12 Tính số tuần
+                    weeks = ((endDate - startDate).days // 7) + 1
+                    for n in range(weeks + 1):
+                        date = startDate + timedelta(weeks=n)
+                        # Tách chuỗi bằng dấu '-'
+                        start_time, end_time = map(str.strip, time.split('-'))
+
+                        # 6.5.13 Kiểm tra trùng buổi học
+                        query_check = """
+                                    SELECT sessionId FROM sessions
+                                    WHERE cId = %s AND sessionDate = %s AND startTime = %s
+                                    """
+                        cursor.execute(query_check, (class_id, date, start_time))
+                        existing_session = cursor.fetchone()
+
+                        # ALTERNATE FLOW (3): Buổi học trùng
+                        if existing_session:
+                            QMessageBox.warning(self, "Lỗi", f"Buổi học đã trùng vào {date} và {start_time}!")
+                            break
+                        else:
+                            # 6.5.14 Thêm buổi học mới
+                            query_session = """
+                                        INSERT INTO sessions (cId, sessionName, sessionDate, startTime, endTime)
+                                        VALUES (%s, %s, %s, %s, %s)
+                                        """
+                            values = (class_id, sessionname, date, start_time, end_time)
+                            cursor.execute(query_session, values)
+                            db.commit()
+                            print("Lưu buổi học thành công!")
+                except Exception as e:
+                    # ALTERNATE FLOW (4): Lỗi khi thêm dòng
+                    db.rollback()
+                    QMessageBox.warning(self, "Lỗi", f"Lỗi khi lưu buổi học: {e}")
+                    print(f"Lỗi khi lưu buổi học:" + e)
+                    break
+            # 6.5.15 Đóng kết nối
+            cursor.close()
+            db.close()
+
+            # 6.5.16 Cập nhật lại danh sách lớp học
+            class_id = self.loadData()
+            self.classname.clear()
+            self.classname.addItems(class_id)
+            print("load du lieu da luu")
+            self.closeImportPopup()
+            self.showMessage("Dữ liệu đã được import thành công!", "Thông báo", QMessageBox.Icon.Information)
+        except Exception as e:
+            # ALTERNATE FLOW (5): Lỗi khi đọc file
+            db.rollback()
+            self.closeImportPopup()
+            self.showMessage(f"Đã có lỗi khi đọc file: {str(e)}", "Lỗi", QMessageBox.Icon.Critical)
+
+    
