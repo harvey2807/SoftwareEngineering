@@ -7,7 +7,7 @@ class DatabaseManagement:
         self.user = 'root'
         self.password = ''
         self.db_name = 'facerecognitionsystem'
-    
+
     def connect(self):
         """Create and return a database connection"""
         try:
@@ -21,22 +21,22 @@ class DatabaseManagement:
         except Exception as e:
             print(f"Error connecting to database: {e}")
             return None
-    
+
     def execute_query(self, query, values=None, fetch=False, fetchone=False):
         """Execute a query and return results if needed"""
         db = self.connect()
         if not db:
             return None
-        
+
         cursor = db.cursor()
         result = None
-        
+
         try:
             if values:
                 cursor.execute(query, values)
             else:
                 cursor.execute(query)
-                
+
             if fetchone:
                 result = cursor.fetchone()
                 # If no record found with fetchone, return None, not 0
@@ -47,15 +47,15 @@ class DatabaseManagement:
             else:
                 db.commit()
                 result = cursor.rowcount
-                
+
         except Exception as e:
             print(f"Error executing query: {e}")
         finally:
             cursor.close()
             db.close()
-            
+
         return result
-    
+
     def get_student_by_id(self, student_id):
         """Get a student by ID
         Returns a single tuple with student details or None if not found
@@ -68,7 +68,7 @@ class DatabaseManagement:
         WHERE s.SId = %s
         """
         return self.execute_query(query, (student_id,), fetchone=True)
-    
+
     # 7.1.7. DatabaseManagement thực hiện truy vấn đến cơ sở dữ liệu (Database).
     # 7.1.8. Cơ sở dữ liệu (Database) trả về danh sách các lớp (bao gồm CId và nameC).
     def get_all_classes(self):
@@ -91,7 +91,7 @@ class DatabaseManagement:
         """
         result = self.execute_query(query, fetch=True)
         return result if result else []
-    
+
     def get_students_by_class(self, class_id):
         """Get all students in a specific class
         Returns list of student tuples or empty list if none found
@@ -105,7 +105,7 @@ class DatabaseManagement:
         """
         result = self.execute_query(query, (class_id,), fetch=True)
         return result if result else []
-    
+
     def delete_student(self, student_id):
         query = "DELETE FROM students WHERE SId = %s"
         return self.execute_query(query, (student_id,))
@@ -119,19 +119,19 @@ class DatabaseManagement:
         """
         values1 = (name, dob, gender, cccd, student_id)
         result1 = self.execute_query(query1, values1)
-        
+
         # Cập nhật lớp học (nếu có)
         if class_name:
             # Get class ID from class name
             class_query = "SELECT CId FROM classes WHERE nameC = %s"
             class_id = self.execute_query(class_query, (class_name,), fetchone=True)
-            
+
             if class_id:
                 class_id = class_id[0]
                 # Kiểm tra xem có bản ghi nào trong studentsofclass chưa
                 check_query = "SELECT * FROM studentsofclass WHERE SId = %s"
                 existing = self.execute_query(check_query, (student_id,), fetch=True)
-                
+
                 if existing:
                     # Cập nhật bản ghi hiện có
                     query2 = "UPDATE studentsofclass SET CId = %s WHERE SId = %s"
@@ -140,9 +140,9 @@ class DatabaseManagement:
                     # Thêm bản ghi mới
                     query2 = "INSERT INTO studentsofclass (CId, SId) VALUES (%s, %s)"
                     values2 = (class_id, student_id)
-                    
+
                 self.execute_query(query2, values2)
-        
+
         return result1
 
     # 7.1.24. Truy vấn SQL chi tiết để lấy toàn bộ thông tin của sinh viên có ID và lớp tương ứng.
@@ -170,10 +170,6 @@ class DatabaseManagement:
         """
         result = self.execute_query(query, (student_id,), fetch=True)
         return result if result else []
-
-
-
-
 
     def get_attendance_data(self):
         """Lấy dữ liệu học sinh có điểm danh"""
@@ -240,4 +236,5 @@ class DatabaseManagement:
 
         return class_names, hoc_sinh_co_diem_danh, hoc_sinh_vang
 
-   
+
+
