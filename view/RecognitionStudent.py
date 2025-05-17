@@ -160,13 +160,13 @@ class RecognitionStudentView(QWidget):
 
         # Buttons
         camera_buttons_layout = QHBoxLayout()
-        #9.1.4. Khi giáo viên nhấn vào nút “Tải ảnh”, phương thức load_image() được kích hoạt.
+        #9.1.5. Khi giáo viên nhấn vào nút “Tải ảnh”, phương thức load_image() được kích hoạt.
         self.load_image_btn = QPushButton("Tải Ảnh")
         self.load_image_btn.clicked.connect(self.load_image)
-        #9.1.25. Khi nhấp vào “Nhận diện lại”, phương thức remove_inf() được gọi
+        #9.1.18. Khi nhấp vào “Nhận diện lại”, phương thức remove_inf() được gọi
         self.reset_recognition = QPushButton("Nhận diện lại")
         self.reset_recognition.clicked.connect(self.remove_inf)
-
+        #9.1.21. Nhấn lưu danh sách
         self.viewList = QPushButton("Lưu danh sách")
         self.viewList.clicked.connect(self.saveDataToDB)
 
@@ -302,11 +302,12 @@ class RecognitionStudentView(QWidget):
         for (x, y, w, h) in faces:
             cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 255), 2)
             cropped_face = img[y:y + h, x:x + w]
+            #9.1.9. Trả về những khuôn mặt đã được detected 
             return cropped_face
         return None
 
     #Phương thức mở hộp thoại chọn tệp cho tệp hình ảnh.
-    # 9.1.7. Khi giáo viên nhấn vào nút “Tải ảnh”, phương thức load_image() được kích hoạt.
+    # 9.1.6. Khi giáo viên nhấn vào nút “Tải ảnh”, phương thức load_image() được kích hoạt.
     def load_image(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Chọn ảnh", "", "Image Files (*.png *.jpg *.jpeg *.bmp)")
         if file_path:
@@ -316,7 +317,7 @@ class RecognitionStudentView(QWidget):
                 return
             #Nếu tải thành công, phương thức process_image() được gọi để chuyển đổi ảnh đã tải từ không gian màu BGR sang RGB.
             self.process_image()
-    #9.1.5. phương thức process_image() được gọi để chuyển đổi ảnh đã tải từ không gian màu BGR sang RGB
+    #9.1.7. phương thức process_image() được gọi để chuyển đổi ảnh đã tải từ không gian màu BGR sang RGB
     def process_image(self):
         if self.current_image is None:
             return
@@ -337,38 +338,39 @@ class RecognitionStudentView(QWidget):
         #9.1.7. Nếu nhận diện được kích hoạt và phát hiện khuôn mặt, update_face_recognitioned() được gọi.
         if self.start_recognition and face is not None:
             self.update_face_recognitioned(face, frame)
-    #9.1.18. update_face_recognitioned(face_img, frame1) xử lý khuôn mặt đã trích xuất để nhận diện
+    #9.1.10. update_face_recognitioned(face_img, frame1) xử lý khuôn mặt đã trích xuất để nhận diện
     def update_face_recognitioned(self, face_img, frame1):
         image_recognition = face_img
         size = self.label_image.size()
         if image_recognition is not None:
             w, h = image_recognition.shape[:2]
             try:
-                #9.1.19. Ảnh khuôn mặt được resize thành 224x224.
+                #9.1.11. Ảnh khuôn mặt được resize thành 224x224.
                 face_resized = cv2.resize(image_recognition, (224, 224))
                 im = Image.fromarray(face_resized, 'RGB')
                 img_array = np.array(im)
                 img_array = np.expand_dims(img_array, axis=0) / 255.0
-                #9.1.20. Mô hình đã được train dự đoán ID sinh viên từ khuôn mặt.
+                #9.1.12. Mô hình đã được train dự đoán ID sinh viên từ khuôn mặt.
                 pred = self.model.predict(img_array)
                 predicted_class = np.argmax(pred, axis=1)
-                #9.1.21. Chỉ số lớp được dự đoán ánh xạ đến ID sinh viên sử dụng self.label_map
+                #9.1.13. Chỉ số lớp được dự đoán ánh xạ đến ID sinh viên sử dụng self.label_map
                 name = self.label_map[predicted_class[0]]
                 self.recognition_name = name
-                #9.1.22. Tên sinh viên được lấy từ self.mapIdtoName .
+                #9.1.14. Tên sinh viên được lấy từ self.mapIdtoName .
                 cv2.putText(frame1, self.mapIdtoName[int(name)-1], (0, 15), cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 255, 0), 1)
                 print(name, self.fronter)
                 frame = cv2.cvtColor(face_resized, cv2.COLOR_BGR2RGB)
                 height, width, channel = frame.shape
                 step = channel * width
                 q_image = QImage(frame.data, 224, 224, step, QImage.Format.Format_RGB888)
-                #9.1.23. Nếu ID sinh viên nhận diện không có trong self.fronter thì ID sinh viên, tên, thời gian được hiển thị trên giao diện, thông tin này được lưu trong self.data
+                #9.1.15. Nếu ID sinh viên nhận diện không có trong self.fronter thì ID sinh viên, tên, thời gian được hiển thị trên giao diện, thông tin này được lưu trong self.data
                 if name not in self.fronter:
                     if self.count < 1:
                         self.fronter.append(name)
                         self.id_input.setText(str(name-1))
                         self.name_input.setText(self.mapIdtoName[int(name)-1])
                         self.time_input.setText(QTime.currentTime().toString("hh:mm:ss"))
+                        #9.1.16. Thông tin này được lưu trong self.data
                         self.data = [str(name-1), self.mapIdtoName[int(name)-1], QTime.currentTime().toString("hh:mm:ss")]
                         
                         self.saveData(self.data)
@@ -380,21 +382,21 @@ class RecognitionStudentView(QWidget):
             except Exception as e:
                 print(f"Error during face processing: {e}")
 
-    #9.1.25. Khi nhấp vào “Nhận diện lại”, phương thức remove_inf() được gọi
+    #9.1.19. Khi nhấp vào “Nhận diện lại”, phương thức remove_inf() được gọi
     def remove_inf(self):
-        #9.1.26. delete_last_row() xóa mục cuối cùng ra khỏi bảng điểm danh.
+        #9.1.17. delete_last_row() xóa mục cuối cùng ra khỏi bảng điểm danh.
         self.delete_last_row()
         name = self.recognition_name
         self.id_input.clear()
         self.name_input.clear()
         self.time_input.clear()
         self.label_image.setPixmap(QPixmap())
-        #9.1.27. Nếu sinh viên có trong self.fronter(), nó được xóa để cho phép nhận diện lại.
+        #9.1.18. Nếu sinh viên có trong self.fronter(), nó được xóa để cho phép nhận diện lại.
         if name in self.fronter:
             self.fronter.remove(name)
             print(self.fronter)
         self.count = 0
-    #9.1.24. saveData(self.data) thêm thông tin vào bảng điểm danh, ID sinh viên được thêm vào self.fronter để ngăn chặn trùng lặp.
+    #9.1.17. saveData(self.data) thêm thông tin vào bảng điểm danh, ID sinh viên được thêm vào self.fronter để ngăn chặn trùng lặp.
     def saveData(self, data_array):
         current_row = self.table.rowCount()
         self.table.insertRow(current_row)
@@ -404,7 +406,7 @@ class RecognitionStudentView(QWidget):
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table.setItem(current_row, col, item)
 
-    #9.1.28. Khi nhấn vào “Lưu danh sách”, phương thức saveDataToDB() được gọi.
+    #9.1.22. Khi nhấn vào “Lưu danh sách”, phương thức saveDataToDB() được gọi.
     def saveDataToDB(self):
         rows = self.table.rowCount()
         cols = self.table.columnCount()
@@ -451,7 +453,7 @@ class RecognitionStudentView(QWidget):
         self.start_recognition = True
         self.table.setRowCount(0)
 
-    #9.1.26. delete_last_row() xóa mục cuối cùng ra khỏi bảng điểm danh.
+    #9.1.2020. delete_last_row() xóa mục cuối cùng ra khỏi bảng điểm danh.
     def delete_last_row(self):
         row_count = self.table.rowCount()
         print("Xóa rồi")
