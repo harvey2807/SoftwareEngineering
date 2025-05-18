@@ -18,6 +18,7 @@ class RecognitionStudentView(QWidget):
     def __init__(self, stacked_widget):
         super().__init__()
         self.stacked_widget = stacked_widget
+
         self.init_ui()
         # Connect to database
         db = mdb.connect(
@@ -53,6 +54,7 @@ class RecognitionStudentView(QWidget):
 
         self.current_image = None
 
+    #9.1.4. init_ui(self) trả về giao diện người hiển thị trên RecognitionStudentView
     def init_ui(self):
         self.setStyleSheet("""
             QWidget {
@@ -310,7 +312,7 @@ class RecognitionStudentView(QWidget):
             return cropped_face
         return None
 
-    #9.1.8. Phương thức mở hộp thoại chọn tệp cho tệp hình ảnh.
+    #9.1.6. Phương thức mở hộp thoại chọn tệp cho tệp hình ảnh.
     def load_image(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Chọn ảnh", "", "Image Files (*.png *.jpg *.jpeg *.bmp)")
         if file_path:
@@ -349,7 +351,7 @@ class RecognitionStudentView(QWidget):
         #9.1.14. Nếu nhận diện được kích hoạt và phát hiện khuôn mặt, update_face_recognitioned() được gọi.
         if self.start_recognition and face is not None:
             self.update_face_recognitioned(face, frame)
-    #9.1.18. update_face_recognitioned(face_img, frame1) xử lý khuôn mặt đã trích xuất để nhận diện
+    #update_face_recognitioned(face_img, frame1) xử lý khuôn mặt đã trích xuất để nhận diện
     def update_face_recognitioned(self, face_img, frame1):
         image_recognition = face_img
         size = self.label_image.size()
