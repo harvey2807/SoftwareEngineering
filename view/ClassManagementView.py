@@ -443,3 +443,366 @@ class ClassManagementView(QWidget):
         # 6.6.14 Đóng kết nối cơ sở dữ liệu
         cursor.close()
         db.close()
+
+    # 4.2.4 Use Case: Sửa thông tin buổi học
+    def edit_session(self):
+        # 6.4.2 Người dùng nhập ID buổi học vào ô nhập (id_input)
+        # 6.4.3 Người dùng nhập các thông tin cập nhật:
+            # Tên buổi học (sessionName)
+            # Ngày diễn ra (datetime)
+            # Giờ bắt đầu (startTime)
+            # Giờ kết thúc (endTime)
+            # Tên lớp (classname)
+        # 6.4.4 Người dùng click nút “Sửa buổi học”
+
+        # 6.4.5 Hệ thống lấy dữ liệu từ input
+        session_id = self.id_input.text().strip()
+
+        # 6.4.6 Hệ thống kiểm tra nếu ID buổi học rỗng
+        if not session_id:
+            # 6.4.7 Nếu rỗng, hiển thị: &quot;ID buổi học không được để trống!&quot;
+            # ALTERNATE FLOW (1): Không nhập ID buổi học
+            print("ID buổi học không được để trống!")
+            return
+
+        # 6.4.8 Hệ thống kết nối đến cơ sở dữ liệu
+        try:
+            db = mdb.connect(
+                host='localhost',
+                user='root',
+                passwd='',
+                db="facerecognitionsystem"
+            )
+            cursor = db.cursor()
+
+            # 6.4.9 Hệ thống lấy các giá trị từ giao diện
+            sessionName = self.sessionName.text()
+            startTime = self.startTime.text()
+            endTime = self.end_time.text()
+            date = self.datetime.date().toString("yyyy-MM-dd")  # Convert date to the proper format
+            className = self.classname.currentText()
+
+            # 6.4.10 Hệ thống kiểm tra nếu tất cả các trường đều trống
+            if not sessionName and not startTime and not endTime and not date and not className:
+                # 6.4.11 Nếu đúng, hiển thị: &quot;Vui lòng nhập đầy đủ thông tin cần thiết!&quot;
+                # ALTERNATE FLOW (2): Tất cả các trường trống
+                print("Vui lòng nhập đầy đủ thông tin cần thiết!")
+                return
+
+            # 6.4.12 Hệ thống truy vấn để lấy classId tương ứng với className từ bảng
+            query_class = "SELECT cId FROM classes WHERE nameC = %s"
+            cursor.execute(query_class, (className,))
+            class_result = cursor.fetchone()
+            class_id = class_result[0]
+
+            # 6.4.13 Hệ thống chuẩn bị truy vấn cập nhật buổi học:
+            query = """
+                    UPDATE sessions
+                    SET  CId = %s, sessionName = %s, sessionDate = %s, startTime = %s, endTime = %s
+                    WHERE sessionId = %s
+                    """
+            values = (class_id, sessionName, date, startTime, endTime, session_id)
+
+            # 6.4.14 Hệ thống thực thi truy vấn và commit dữ liệu
+            cursor.execute(query, values)
+            db.commit()
+
+            # 6.4.15 Nếu không có hàng nào bị ảnh hưởng
+            if cursor.rowcount == 0:
+                # ALTERNATE FLOW (3): Không tìm thấy session để sửa
+                # 6.4.16 Hiển thị: &quot;Không tìm thấy buổi học với ID để sửa.&quot;
+                print(f"Không tìm thấy buổi học với ID {session_id} để sửa.")
+                # 6.4.17 Xóa các trường nhập liệu
+                self.reset_fields()
+            # 6.4.18 Nếu sửa thành công
+            else:
+                # 6.4.19Hiển thị: &quot;Sửa thông tin buổi học với ID thành công!&quot;
+                print(f"Sửa thông tin buổi học với ID {session_id} thành công!")
+                # 6.4.20 Xóa các trường nhập liệu
+                self.reset_fields()
+
+        except Exception as e:
+            # 6.4.21 Hệ thống đóng kết nối cơ sở dữ liệu
+            # ALTERNATE FLOW (4): Lỗi hệ thống/CSDL
+            print(f"Lỗi khi sửa thông tin buổi học: {e}")
+        finally:
+            cursor.close()
+            db.close()
+
+    # 4.2.3 Use case Xóa buổi học
+    def delete_session(self):
+        # 6.3.3 Người dùng nhập ID buổi học vào ô nhập (id_input)
+        # 6.3.4 Người dùng click nút “Xóa buổi học”
+
+        # 6.3.5 Hệ thống lấy session_id từ input
+        session_id = self.id_input.text().strip()
+
+        # 6.3.6 Kiểm tra giá trị sessionId
+        if not session_id:
+            # 6.3.7 Nếu rỗng, hiển thị thông báo: &quot;Cần nhập ID Học sinh để xóa!&quot;
+            # ALTERNATE FLOW (1): ID rỗng
+            print("Cần nhập ID Học sinh để xóa!")
+            return
+
+        # 6.3.7 Hệ thống kết nối tới cơ sở dữ liệu
+        try:
+            db = mdb.connect(
+                host='localhost',
+                user='root',
+                passwd='',
+                db="facerecognitionsystem"
+            )
+            cursor = db.cursor()
+
+            # Câu lệnh SQL để xóa dữ liệu
+            query = "DELETE FROM sessions WHERE sessionId = %s"
+            cursor.execute(query, (session_id,))
+
+            # 6.3.8 Hệ thống thực hiện xóa sessionId vừa nhập
+            db.commit()
+
+            # 6.3.9 Hệ thống hiện thị thông báo thành công:
+            print(f"Xóa thông tin Học sinh với ID {session_id} thành công!")
+
+            # 6.3.10 Xóa các trường nhập liệu:
+            self.reset_fields()  # Reset các ô nhập liệu
+        except Exception as e:
+            # ALTERNATE FLOW (2): Lỗi kết nối hoặc truy vấn CSDL
+            print(f"Lỗi khi xóa học sinh: {e}")
+        finally:
+            # 6.3.11 Hệ thống đóng kết nối CSDL
+            cursor.close()
+            db.close()
+
+    # 4.2.2 Use Case: Tìm kiếm buổi học
+    def search_session(self):
+        # 6.2.2 Người dùng nhập từ khóa vào ô tìm kiếm (QLineEdit)
+        # 6.2.3 Người dùng click nút &quot;Tìm kiếm&quot;
+
+        # 6.2.4 Hệ thống lấy từ khóa từ ô nhập và loại bỏ khoảng trắng
+        keyword = self.search_input.text().strip()
+
+        # 6.2.5 Hệ thống kiểm tra nếu từ khóa rỗng
+        if not keyword:
+            # 🔀 ALTERNATE FLOW (1): Từ khóa rỗng
+            print("Cần nhập từ khóa để tìm kiếm!")
+            QMessageBox.warning(self, "Thiếu từ khóa", "Vui lòng nhập từ khóa để tìm kiếm!")
+            return
+
+        # 6.2.6 Hệ thống kiểm tra nếu chưa đăng nhập (kiểm tra Global.GLOBAL_ACCOUNTID)
+        if not Global.GLOBAL_ACCOUNTID:
+            # 6.2.7 Nếu chưa đăng nhập, hiển thị thông báo lỗi: &quot;Chưa đăng nhập hoặc không có ID giáo viên!&quot;
+            # ALTERNATE FLOW (2): Chưa đăng nhập
+            print("Chưa đăng nhập hoặc không có ID giáo viên!" + Global.GLOBAL_ACCOUNTID)
+
+        # 6.2.8 Hệ thống kết nối đến cơ sở dữ liệu và Thực hiện truy vấn
+        try:
+            db = mdb.connect(
+                host='localhost',
+                user='root',
+                passwd='',
+                db="facerecognitionsystem"
+            )
+            cursor = db.cursor()
+            print(Global.GLOBAL_ACCOUNTID)
+            print("%" + keyword + "%")
+            query = """
+                   SELECT sessionId,sessionName, classes.nameC, sessionDate, startTime, endTime
+                   FROM sessions
+                   JOIN classes ON sessions.cId = classes.cId
+                   JOIN teachers t ON classes.TId = t.TID
+                   WHERE classes.nameC LIKE %s AND t.TID = %s
+                   """
+            cursor.execute(query, ("%" + keyword + "%", Global.GLOBAL_ACCOUNTID))  # Thêm dấu % vào từ khóa
+            results = cursor.fetchall()
+
+            # 6.2.9 Thực hiện truy vấn Hệ thống kiểm tra kết quả truy vấn
+            if not results:
+                # 6.2.10 Nếu không có kết quả, hiển thị thông báo: &quot;Không tìm thấy buổi học nào
+                # với từ khóa này.&quot; -> Kết thúc usecase
+                # ALTERNATE FLOW (3): Không tìm thấy kết quả
+                print("Không tìm thấy buổi học nào với từ khóa này.")
+                return
+
+            # 6.2.11 Hệ thống hiển thị kết quả trong bảng (QTableWidget)
+            # Duyệt từng hàng kết quả và gán giá trị vào các ô tương ứng
+            self.table.setRowCount(len(results))
+            for row_idx, row_data in enumerate(results):
+                for col_idx, col_data in enumerate(row_data):
+                    self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(col_data)))
+
+        except Exception as e:
+            # ALTERNATE FLOW (4): Lỗi khi kết nối hoặc truy vấn CSDL
+            print(f"Lỗi khi tìm kiếm: {e}")
+
+    # xem tất cả
+    def view_all_session(self):
+        try:
+            db = mdb.connect(
+                host='localhost',
+                user='root',
+                passwd='',
+                db="facerecognitionsystem"
+            )
+            cursor = db.cursor()
+            query = """
+                    SELECT sessionId,sessionName, classes.nameC, sessionDate, startTime, endTime
+                    FROM sessions
+                    JOIN classes ON sessions.cId = classes.cId
+                    JOIN teachers t ON classes.TId = t.TID
+                    WHERE t.TID = %s
+                    """
+            cursor.execute(query, (Global.GLOBAL_ACCOUNTID,))
+            results = cursor.fetchall()
+
+            # Kiểm tra nếu không có kết quả
+            if not results:
+                print("Không có buổi học nào trong hệ thống.")
+                self.reset_fields()
+                return
+
+            # Cập nhật bảng
+            self.table.setRowCount(len(results))  # Cập nhật số dòng trong bảng
+            # Điền dữ liệu vào bảng
+            for row_idx, row_data in enumerate(results):
+                for col_idx, col_data in enumerate(row_data):
+                    self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(col_data)))
+
+        except Exception as e:
+            print(f"Lỗi khi xem tất cả: {e}")
+            self.reset_fields()
+        finally:
+            cursor.close()
+            db.close()
+
+    def loadData(self):
+        # Mảng để chứa dữ liệu
+        class_names = []
+        print(Global.GLOBAL_ACCOUNTID)
+
+        try:
+            # Kết nối đến cơ sở dữ liệu
+            db = mdb.connect(
+                host='localhost',
+                user='root',
+                passwd='',
+                db="facerecognitionsystem"
+            )
+            cursor = db.cursor()
+
+            # Truy vấn để lấy tên lớp học
+            query = """
+                    SELECT nameC
+                    FROM classes 
+                    JOIN teachers t ON classes.TId = t.TID
+                    WHERE t.TID = %s
+                    """
+            cursor.execute(query, (Global.GLOBAL_ACCOUNTID,))  # Lọc theo giáo viên
+            results = cursor.fetchall()
+
+            # Kiểm tra nếu không có kết quả
+            if not results:
+                print("Không có lớp học nào trong hệ thống.")
+                return class_names  # Trả về mảng rỗng
+
+            # Lấy dữ liệu từ kết quả truy vấn và lưu vào mảng class_names
+            class_names = [result[0] for result in results]  # result[0] là tên lớp học
+
+        except Exception as e:
+            print(f"Lỗi khi tải dữ liệu: {e}")
+
+        finally:
+            # Đóng kết nối và cursor
+            cursor.close()
+            db.close()
+
+        return class_names
+
+    # 4.2.1 Use case: Thêm lớp học
+    # 6.1.3 Người dùng click nút &quot;Thêm lớp học&quot sẽ gọi hàm add_class_popup vì đã gán sự kiện;
+    def add_class_popup(self):
+        # 6.1.4: Hệ thống khởi tạo QDialog chứa tên và kích thước màn hình
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Thêm Lớp Học")
+        dialog.setFixedSize(300, 150)
+
+        layout = QVBoxLayout()
+
+        # 6.1.5: Hệ thống khởi tạo QLabel chứa tên màn hình
+        label = QLabel("Nhập tên lớp học:")
+
+        # 6.1.6: Hệ thống khởi tạo QLineEdit để nhập tên lớp học
+        class_name_input = QLineEdit()
+        class_name_input.setPlaceholderText("Tên lớp học...")
+
+        # 6.1.7: Hệ thống khởi tạo QBoxLayout chứa layout cho 2 nút "Thêm" và "Hủy"
+        button_layout = QHBoxLayout()
+
+        # 6.1.8: Hệ thống khởi tạo 2 nút Thêm và Hủy và cho vào layout Button
+        add_button = QPushButton("Thêm")
+        cancel_button = QPushButton("Hủy")
+        button_layout.addWidget(add_button)
+        button_layout.addWidget(cancel_button)
+
+        # 6.1.9: Thêm các thành phần vào layout chính
+        layout.addWidget(label)
+        layout.addWidget(class_name_input)
+        layout.addLayout(button_layout)
+
+        # 6.1.10: Hệ thống thiết lập layout chính cho QDialog.
+        dialog.setLayout(layout)
+
+        # Hàm sự kiện của nút thêm lớp học
+        def handle_add_class():
+
+            # 6.1.13 Người dùng nhập tên lớp học vào ô input.
+
+            # 6.1.14 Lấy tên lớp học từ ô input.
+            class_name = class_name_input.text().strip()
+
+            # 6.1.14 Người dùng click nút "Thêm".
+
+            # 6.1.15 Hệ thống kiểm tra tên lớp học: nếu hợp lệ → tiếp tục; nếu không → Alternate Flow (1).
+            if not class_name:
+                # 6.1.16 + Alternate Flow: kiểm tra không hợp lệ
+                QMessageBox.warning(dialog, "Lỗi", "Tên lớp học không được để trống!")
+                return  # Quay lại bước 13
+
+            # 6.1.17 Hệ thống gọi API hoặc thao tác CSDL để lưu tên lớp học.
+            try:
+                db = mdb.connect(
+                    host='localhost',
+                    user='root',
+                    passwd='',
+                    db="facerecognitionsystem"
+                )
+                cursor = db.cursor()
+
+                # Thực hiện truy vấn để thêm lớp học
+                query = "INSERT INTO classes (nameC, TId) VALUES (%s, %s)"
+                cursor.execute(query, (class_name, Global.GLOBAL_ACCOUNTID))
+                db.commit()
+
+                # 6.1.18 Hệ thống hiển thị thông báo "Thêm thành công".
+                QMessageBox.information(dialog, "Thành công", "Lớp học đã được thêm thành công!")
+
+                # 6.1.19 Hệ thống cập nhật combobox tên lớp học.
+                self.classname.addItem(class_name)
+
+                # 6.1.20 Hệ thống đóng QDialog.
+                dialog.accept()  # Đóng popup
+
+            except Exception as e:
+                # Alternate Flow (2): Gặp lỗi khi thao tác với DB (API hoặc CSDL) -> Kết thúc useCase
+                QMessageBox.critical(dialog, "Lỗi", f"Lỗi khi thêm lớp học: {e}")
+            finally:
+                cursor.close()  
+                db.close()
+
+        # 6.1.11 Hệ thống gán sự kiện click cho nút "Thêm" và "Hủy".
+        add_button.clicked.connect(handle_add_class)
+             # Alternate Flow (3): Người dùng bấm nút "Hủy"
+        cancel_button.clicked.connect(dialog.reject)
+
+        # 6.1.12 Hiện Thị Dialog
+        dialog.exec()
