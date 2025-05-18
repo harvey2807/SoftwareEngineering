@@ -132,19 +132,13 @@ class Home(QWidget):
         self.ClassManagementView = ClassManagementView(self)
 
         # Thêm các trang vào tab
-        self.Profile_page = ProfileView(self)
-        self.RecognitionStudent_page = RecognitionStudentView(self)
+        self.RecognitionStudent_page = RecognitionStudent(self)
         self.StudentInformationManagement = StudentInformationManagement(self)
-        self.ClassManagement = ClassManagementView(self)
         self.SystemStatistics = SystemStatistics(self)
-        self.Resetpassword_page = ResetPasswordView(self)
 
         self.tab.addTab(self.SystemStatistics, 'Thống kê')
         self.tab.addTab(self.StudentInformationManagement, 'Quản lí học sinh')
-        self.tab.addTab(self.ClassManagement, 'Quản lí lớp học')
         self.tab.addTab(self.RecognitionStudent_page, 'Nhận diện')
-        self.tab.addTab(self.Profile_page, 'Thông tin')
-        self.tab.addTab(self.Resetpassword_page, 'Đổi mật khẩu')
 
         # Thêm QTabWidget vào layout chính
         self.main_layout.addWidget(self.tab)
