@@ -349,4 +349,97 @@ class ClassManagementView(QWidget):
             self.closeImportPopup()
             self.showMessage(f"Đã có lỗi khi đọc file: {str(e)}", "Lỗi", QMessageBox.Icon.Critical)
 
-    
+    def showMessage(self, text, title, icon):
+        msg = QMessageBox(self)
+        msg.setIcon(icon)
+        msg.setText(text)
+        msg.setWindowTitle(title)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.exec()
+
+    def showImportPopup(self):
+        self.import_popup = QMessageBox(self)
+        self.import_popup.setIcon(QMessageBox.Icon.Information)
+        self.import_popup.setText("Đang import vào CSDL...")
+        self.import_popup.setWindowTitle("Thông báo")
+        self.import_popup.setStandardButtons(QMessageBox.StandardButton.NoButton)
+        self.import_popup.setModal(True)
+        self.import_popup.show()
+
+    def closeImportPopup(self):
+        # Đóng popup thông báo
+        if hasattr(self, 'import_popup'):
+            self.import_popup.close()
+
+    # 4.2.6 Use Case: Thêm buổi học
+    def save_session(self):
+        # 6.6.3 Người dùng nhập thông tin vào các trường giao diện:
+        # 6.6.4 Người dùng click nút “Lưu buổi học”
+
+        # 6.6.5 Hệ thống kết nối tới cơ sở dữ liệu
+        db = mdb.connect(
+            host='localhost',
+            user='root',
+            passwd='',
+            db="facerecognitionsystem"
+        )
+        cursor = db.cursor()
+
+        # 6.6.6 Hệ thống lấy dữ liệu từ input
+        session_id = self.id_input.text()
+        sessionName = self.sessionName.text()
+        startTime = self.startTime.text()
+        endTime = self.end_time.text()
+        date = self.datetime.date().toString("yyyy-MM-dd")  # Convert date to the proper format
+        className = self.classname.currentText()
+
+        # Câu lệnh SQL để chèn dữ liệu
+        try:
+            # 6.6.7 Hệ thống lấy cId từ bảng classes bằng tên lớp
+            query_class = "SELECT cId FROM classes WHERE nameC = %s"
+            cursor.execute(query_class, (className,))
+            class_result = cursor.fetchone()
+
+            # MF: Lớp học tồn tại
+            if class_result:
+                # 6.6.8 Hệ thống kiểm tra xem buổi học đã tồn tại với cùng class_id, date, và startTime chưa
+                class_id = class_result[0]
+                query_check = """
+                            SELECT sessionId FROM sessions
+                            WHERE cId = %s AND sessionDate = %s AND startTime = %s
+                            """
+                cursor.execute(query_check, (class_id, date, startTime))
+                existing_session = cursor.fetchone()
+                # 6.6.9 Nếu có buổi học trùng:
+                    # Hiển thị: &quot;Buổi học đã tồn tại vào ngày và giờ này!&quot; bằng QMessageBox.warning Kết thúc Use Case
+                if existing_session:
+                    # AF(1): Buổi học đã tồn tại → Cảnh báo và kết thúc Use Case
+                    print("Lỗi: Buổi học này đã tồn tại vào ngày và giờ này!")
+                    QMessageBox.warning(self, "Lỗi", "Buổi học đã tồn tại vào ngày và giờ này!")
+                else:
+                    # 6.6.10 Nếu không có buổi học trùng: Thực hiện chèn dữ liệu mới vào bảng sessions:
+                    query_session = """
+                                INSERT INTO sessions (sessionId, cId, sessionName, sessionDate, startTime, endTime)
+                                VALUES (%s, %s, %s, %s, %s, %s)
+                                """
+                    values = (session_id, class_id, sessionName, date, startTime, endTime)
+                    # 6.6.11 Thực thi và commit dữ liệu
+                    cursor.execute(query_session, values)
+                    db.commit()
+                    print("Lưu buổi học thành công!")
+                    # 6.6.12 Hiển thị thông báo: &quot;Buổi học đã được lưu thành công!&quot; bằng
+                    # QMessageBox.information
+                    QMessageBox.information(self, "Thành công", "Buổi học đã được lưu thành công!")
+
+                    # 6.6.13 Gọi reset_fields() để làm sạch các ô nhập
+                    self.reset_fields()
+            else:
+                # AF(2): Lớp học không tồn tại
+                print("Không tìm thấy lớp học phù hợp.")
+
+        except Exception as e:
+            # AF(3): Lỗi hệ thống hoặc lỗi khi insert buổi học
+            print(f"Lỗi khi lưu buổi học: {e}")
+        # 6.6.14 Đóng kết nối cơ sở dữ liệu
+        cursor.close()
+        db.close()
