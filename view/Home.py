@@ -6,6 +6,9 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt, QTimer, QTime, QDate, QSize
 
+
+import Global
+
 from StudentInformationManagement import StudentInformationManagement
 from SystemStatistics import SystemStatistics
 from ClassManagementView import ClassManagementView
@@ -31,7 +34,6 @@ class Home(QWidget):
                            background-color: white;
                            border-radius: 10px;
                        """)
-
         self.header_panel = QFrame(self.panel)
         self.header_panel.setGeometry(0, 0, 1150, 50)
         self.header_panel.setStyleSheet("""
@@ -40,6 +42,7 @@ class Home(QWidget):
                             border-top-left-radius: 10px;
                             border-bottom: 1px solid black;
                         """)
+
 
         self.clock_icon = QLabel()
         self.clock_icon.setPixmap(QPixmap('../Image/clock-icon.png').scaled(35, 30))
@@ -59,6 +62,7 @@ class Home(QWidget):
         self.date_label.setStyleSheet("font-size: 12px; font-weight: bold; border: none;")
         self.time_date_layout.addWidget(self.date_label)
 
+
         self.title_label = QLabel("Hệ thống nhận diện khuôn mặt")
         self.title_label.setStyleSheet("font-size: 20px; font-weight: bold;")
         self.title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -71,6 +75,36 @@ class Home(QWidget):
         self.title_layout.setContentsMargins(0, 0, 0, 0)
         self.title_layout.addWidget(self.title_label)
 
+        # Tạo nút logout
+        self.logout_button = QPushButton(self.header_panel)
+        self.logout_button.setIcon(QIcon("../Image/logout_icon.png"))  # Đường dẫn đến icon
+        self.logout_button.setIconSize(QSize(30, 30))  # Kích thước icon
+        self.logout_button.setStyleSheet("font-size: 14px; font-weight: bold; padding: 5px;")
+        self.logout_button.setStyleSheet("border: none;")
+        self.logout_button.clicked.connect(self.logout_action)
+
+        # Sử dụng QHBoxLayout cho header_panel
+        self.header_layout = QHBoxLayout(self.header_panel)
+        self.header_layout.setContentsMargins(10, 5, 10, 5)  # Căn chỉnh lề
+        self.header_layout.setSpacing(10)
+
+        # Thêm các phần tử vào header_layout
+        self.header_layout.addWidget(self.clock_icon)  # Đồng hồ
+        self.header_layout.addWidget(self.time_date_panel)  # Ngày tháng
+        self.header_layout.addStretch()  # Đẩy các phần tử còn lại sang trái
+        self.header_layout.addWidget(self.title_panel)  # Tiêu đề
+        self.header_layout.addStretch()  # Đẩy nút logout sang phải
+        self.header_layout.addWidget(self.logout_button)  # Nút logout
+
+        self.main_widget = QWidget(self.panel)
+        self.main_widget.setStyleSheet("background-color: white;")
+        self.main_widget.setGeometry(0, 50, 1150, 600)
+
+        # Layout chính cho main_widget
+        self.main_layout = QVBoxLayout(self.main_widget)
+        self.main_widget.setLayout(self.main_layout)
+
+        # Tạo QTabWidget
         self.header_layout = QHBoxLayout(self.header_panel)
         self.header_layout.setContentsMargins(10, 5, 10, 5)
         self.header_layout.setSpacing(10)
@@ -97,6 +131,40 @@ class Home(QWidget):
         """)
         self.ClassManagementView = ClassManagementView(self)
 
+        # Thêm các trang vào tab
+        self.Profile_page = ProfileView(self)
+        self.RecognitionStudent_page = RecognitionStudentView(self)
+        self.StudentInformationManagement = StudentInformationManagement(self)
+        self.ClassManagement = ClassManagementView(self)
+        self.SystemStatistics = SystemStatistics(self)
+        self.Resetpassword_page = ResetPasswordView(self)
+
+        self.tab.addTab(self.SystemStatistics, 'Thống kê')
+        self.tab.addTab(self.StudentInformationManagement, 'Quản lí học sinh')
+        self.tab.addTab(self.ClassManagement, 'Quản lí lớp học')
+        self.tab.addTab(self.RecognitionStudent_page, 'Nhận diện')
+        self.tab.addTab(self.Profile_page, 'Thông tin')
+        self.tab.addTab(self.Resetpassword_page, 'Đổi mật khẩu')
+
+        # Thêm QTabWidget vào layout chính
+        self.main_layout.addWidget(self.tab)
+
+        # Đồng hồ cập nhật
+        timer = QTimer(self)
+        timer.timeout.connect(self.update_time)
+        timer.start(1000)
+
+        self.update_time()
+
+    def logout_action(self):
+
+        self.stacked_widget.setCurrentIndex(0)
+        Global.GLOBAL_ACCOUNT = None
+        Global.GLOBAL_ACCOUNTID = None
+
+    def update_time(self):
+        self.time_label.setText(QTime.currentTime().toString("hh:mm:ss"))
+        self.date_label.setText(QDate.currentDate().toString("dd/MM/yyyy"))
         # Khởi tạo một đối tượng StudentInformationManagement.
         self.StudentInformationManagement = StudentInformationManagement(self)
         # Khởi tạo một đối tượng SystemStatistics.
@@ -129,4 +197,4 @@ if __name__ == "__main__":
     home.show()
     sys.exit(app.exec())
 
-      
+    
