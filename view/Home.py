@@ -11,6 +11,7 @@ import Global
 
 from StudentInformationManagement import StudentInformationManagement
 from SystemStatistics import SystemStatistics
+from ClassManagementView import ClassManagementView
 # 7.0.1. Đang ở trang Home này
 class Home(QWidget):
     def __init__(self,stacked_widget):
@@ -128,6 +129,7 @@ class Home(QWidget):
                 padding: 5px;
             }
         """)
+        self.ClassManagementView = ClassManagementView(self)
 
         # Thêm các trang vào tab
         self.Profile_page = ProfileView(self)
@@ -165,13 +167,13 @@ class Home(QWidget):
         self.date_label.setText(QDate.currentDate().toString("dd/MM/yyyy"))
         # Khởi tạo một đối tượng StudentInformationManagement.
         self.StudentInformationManagement = StudentInformationManagement(self)
-
         # Khởi tạo một đối tượng SystemStatistics.
         self.SystemStatistics = SystemStatistics(self)
 
+        self.tab.addTab(self.ClassManagementView, 'Quản lí lớp học')
+
         # QTabWidget thêm StudentInformationManagement làm tab mới với tên "Quản lí sinh viên" thông qua phương thức addTab.
         self.tab.addTab(self.StudentInformationManagement, 'Quản lí sinh viên')
-
         self.tab.addTab(self.SystemStatistics, 'Thống kê')
 
     # 6.1.0 Chọn tab "Thống kê" từ  QTabWidget
