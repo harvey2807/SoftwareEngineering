@@ -7,11 +7,17 @@ from PyQt6.QtWidgets import (
 )
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-from MySQLdb import connect
+import sys
+import os
+
+# Thêm thư mục gốc vào PYTHONPATH
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(project_root)
+from model.DatabaseManagement import DatabaseManagement
+
 from AttendanceWindow import AttendanceWindow
 from NoAttendanceWindow import NoAttendanceWindow
 import os
-
 
 class SystemStatistics(QMainWindow):
     def __init__(self, stacked_widget):
@@ -20,6 +26,7 @@ class SystemStatistics(QMainWindow):
         self.stacked_widget = stacked_widget
         self.setWindowTitle("Thống kê hệ thống")
         self.setGeometry(100, 100, 1200, 700)
+        self.db_manager = DatabaseManagement()  # Khởi tạo DatabaseManagement
         self.setup_ui()
         self.setStyleSheet("background-color: white; color:black;")
         self.chart_canvas = QWidget()
@@ -103,19 +110,12 @@ class SystemStatistics(QMainWindow):
 
     def shorten_class_name(self, name, max_length=10):
         """Hàm rút ngắn tên môn học nếu quá dài"""
-        # Nếu tên đã ngắn hơn max_length, giữ nguyên
         if len(name) <= max_length:
             return name
-
-        # Chia tên thành các từ
         words = name.split()
         if len(words) == 1:
-            # Nếu chỉ có 1 từ, cắt ngắn và thêm "..."
             return name[:max_length - 3] + "..."
-
-        # Lấy chữ cái đầu của mỗi từ và ghép lại
         short_name = "".join(word[0] for word in words if word)
-        # Nếu vẫn dài hơn max_length, cắt ngắn
         if len(short_name) > max_length:
             return short_name[:max_length - 3] + "..."
         return short_name
@@ -124,52 +124,8 @@ class SystemStatistics(QMainWindow):
         figure = Figure(figsize=(10, 6))
         ax = figure.add_subplot(111)
 
-        db = connect(
-            host='localhost',
-            user='root',
-            passwd='',
-            db="facerecognitionsystem"
-        )
-        cursor = db.cursor()
-
-        # Lấy danh sách tất cả các lớp
-        query_classes = """
-        SELECT c.CId, c.nameC
-        FROM classes c
-        ORDER BY c.CId;
-        """
-        cursor.execute(query_classes)
-        data_classes = cursor.fetchall()
-        class_names = {row[0]: row[1] for row in data_classes}
-
-        # Lấy số học sinh có điểm danh
-        query_present = """
-        SELECT c.nameC, COUNT(ss.SId) AS present_students_count
-        FROM classes c
-        JOIN sessions s ON c.CId = s.CId
-        JOIN studentsinsessions ss ON s.sessionId = ss.sessionId
-        WHERE ss.attendance = 'present'
-        GROUP BY c.CId;
-        """
-        cursor.execute(query_present)
-        data_present = cursor.fetchall()
-        hoc_sinh_co_diem_danh = {row[0]: row[1] for row in data_present}
-
-        # Lấy số học sinh vắng
-        query_absent = """
-        SELECT c.nameC, COUNT(ss.SId) AS absent_students_count
-        FROM classes c
-        JOIN sessions s ON c.CId = s.CId
-        JOIN studentsInSessions ss ON s.sessionId = ss.sessionId
-        WHERE ss.attendance = 'absent'
-        GROUP BY c.CId;
-        """
-        cursor.execute(query_absent)
-        data_absent = cursor.fetchall()
-        hoc_sinh_vang = {row[0]: row[1] for row in data_absent}
-
-        cursor.close()
-        db.close()
+        # Lấy dữ liệu từ DatabaseManagement
+        class_names, hoc_sinh_co_diem_danh, hoc_sinh_vang = self.db_manager.get_class_statistics()
 
         # Rút ngắn tên lớp học tự động
         x = [self.shorten_class_name(name) for name in class_names.values()]
@@ -195,7 +151,6 @@ class SystemStatistics(QMainWindow):
             ax.bar([i + width / 2 for i in indices], miss, width=width, color="#64113F", label="Số học sinh vắng")
 
         ax.set_xticks(indices)
-        # Xoay nhãn trục x 45 độ và căn chỉnh
         ax.set_xticklabels(x, rotation=45, ha="right", fontsize=10)
         ax.set_title("Thống kê học sinh theo lớp học", fontsize=18, fontweight="bold", pad=20)
         ax.set_ylabel("Số học sinh", fontsize=12, labelpad=10)
@@ -211,7 +166,6 @@ class SystemStatistics(QMainWindow):
         )
 
         ax.set_facecolor("#ffffff")
-        # Điều chỉnh khoảng cách để nhãn trục x không bị cắt
         figure.subplots_adjust(bottom=0.25, left=0.1, right=0.9, top=0.9)
         figure.set_facecolor("#ffffff")
         ax.grid(color="#0E131F", linestyle="--", linewidth=0.5, alpha=0.3)
@@ -227,7 +181,6 @@ class SystemStatistics(QMainWindow):
                 widget.deleteLater()
         self.chart_canvas = self.create_area_chart()
         self.chart_layout.addWidget(self.chart_canvas)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
