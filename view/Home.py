@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt, QTimer, QTime, QDate, QSize
 
 
 import Global
-
+from RecognitionStudent import RecognitionStudentView
 from StudentInformationManagement import StudentInformationManagement
 from SystemStatistics import SystemStatistics
 from ClassManagementView import ClassManagementView
@@ -132,7 +132,7 @@ class Home(QWidget):
         self.ClassManagementView = ClassManagementView(self)
 
         # Thêm các trang vào tab
-        self.RecognitionStudent_page = RecognitionStudent(self)
+        self.RecognitionStudent_page = RecognitionStudentView(self)
         self.StudentInformationManagement = StudentInformationManagement(self)
         self.SystemStatistics = SystemStatistics(self)
 
