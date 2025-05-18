@@ -359,7 +359,7 @@ class StudentInformationManagement(QWidget):
                 self.load_students_by_class()
             else:
                 self.view_all_students()
-                
+        
             # Load thông tin đã sửa, truyền cả ID và lớp học
             self.load_student_to_inputs(student_id, student_class)
 
@@ -500,6 +500,7 @@ class StudentInformationManagement(QWidget):
             print(f"Lỗi khi tải thông tin học sinh: {e}")
             self.reset_fields()
 
+
     def load_students_by_class(self):
         """Load students based on selected class"""
         try:
@@ -537,5 +538,6 @@ class StudentInformationManagement(QWidget):
             self.table.setRowCount(0)
             self.reset_fields()
 
+   
    
 

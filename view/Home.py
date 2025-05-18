@@ -99,7 +99,6 @@ class Home(QWidget):
 
         # Khởi tạo một đối tượng StudentInformationManagement.
         self.StudentInformationManagement = StudentInformationManagement(self)
-
         # Khởi tạo một đối tượng SystemStatistics.
         self.SystemStatistics = SystemStatistics(self)
 
@@ -107,7 +106,6 @@ class Home(QWidget):
 
         # QTabWidget thêm StudentInformationManagement làm tab mới với tên "Quản lí sinh viên" thông qua phương thức addTab.
         self.tab.addTab(self.StudentInformationManagement, 'Quản lí sinh viên')
-
         self.tab.addTab(self.SystemStatistics, 'Thống kê')
 
     # 6.1.0 Chọn tab "Thống kê" từ  QTabWidget
