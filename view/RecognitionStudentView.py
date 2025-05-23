@@ -30,7 +30,7 @@ class RecognitionStudentView(QWidget):
         cursor = db.cursor()
 
         # Load model
-        self.model = load_model("D:\\DangTranTanLuc\\model (91-73).keras")
+        self.model = load_model("D:\\DangTranTanLuc\\model (94-80).keras")
 
         self.start_recognition = False
         self.count = 0
@@ -332,6 +332,7 @@ class RecognitionStudentView(QWidget):
 
         face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         faces = face_cascade.detectMultiScale(frame, 1.3, 5)
+        print("this is here")
         for (x, y, w, h) in faces:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 255), 2)
         height, width, channel = frame.shape
@@ -342,14 +343,14 @@ class RecognitionStudentView(QWidget):
         #9.1.8. face_extractor(img) phát hiện khuôn mặt trong ảnh grayscale sử dụng Haar cascade.
         face = self.face_extractor(gray)
 
-        #Nếu nhận diện được kích hoạt và phát hiện khuôn mặt, update_face_recognitioned() được gọi.
-        if self.start_recognition and face is not None:
-            self.update_face_recognitioned(face, frame)
+        #Nếu nhận diện được kích hoạt và phát hiện khuôn mặt, update_face_recognitioned() được gọi
     #9.1.10. update_face_recognitioned(face_img, frame1) xử lý khuôn mặt đã trích xuất để nhận diện
         face = self.face_extractor(gray)
-
+        print("activate recognition")
         #9.1.14. Nếu nhận diện được kích hoạt và phát hiện khuôn mặt, update_face_recognitioned() được gọi.
-        if self.start_recognition and face is not None:
+        self.start_recognition = True
+        if self.start_recognition:
+            print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
             self.update_face_recognitioned(face, frame)
     #update_face_recognitioned(face_img, frame1) xử lý khuôn mặt đã trích xuất để nhận diện
     def update_face_recognitioned(self, face_img, frame1):
@@ -358,16 +359,19 @@ class RecognitionStudentView(QWidget):
         if image_recognition is not None:
             w, h = image_recognition.shape[:2]
             try:
+                print("cccccccccccccccccccccccccccccccccccc")
                 #9.1.11. Ảnh khuôn mặt được resize thành 224x224.
                 face_resized = cv2.resize(image_recognition, (224, 224))
                 im = Image.fromarray(face_resized, 'RGB')
                 img_array = np.array(im)
                 img_array = np.expand_dims(img_array, axis=0) / 255.0
                 #9.1.12. Mô hình đã được train dự đoán ID sinh viên từ khuôn mặt.
+                print("this is running")
                 pred = self.model.predict(img_array)
                 predicted_class = np.argmax(pred, axis=1)
                 #9.1.13. Chỉ số lớp được dự đoán ánh xạ đến ID sinh viên sử dụng self.label_map
                 name = self.label_map[predicted_class[0]]
+                # print("size of predicted class" +  predicted_class.size)
                 self.recognition_name = name
                 #9.1.14. Tên sinh viên được lấy từ self.mapIdtoName .
                 pred = self.model.predict(img_array)
@@ -417,6 +421,7 @@ class RecognitionStudentView(QWidget):
             self.fronter.remove(name)
             print(self.fronter)
         self.count = 0
+        self.process_image()
 
     #9.1.17. saveData(self.data) thêm thông tin vào bảng điểm danh, ID sinh viên được thêm vào self.fronter để ngăn chặn trùng lặp.
     def saveData(self, data_array):
