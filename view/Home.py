@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt, QTimer, QTime, QDate, QSize
 
 
 import Global
-from RecognitionStudent import RecognitionStudentView
+from RecognitionStudentView import RecognitionStudentView
 from StudentInformationManagement import StudentInformationManagement
 from SystemStatistics import SystemStatistics
 from ClassManagementView import ClassManagementView
